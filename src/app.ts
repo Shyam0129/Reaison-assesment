@@ -1,10 +1,12 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { rateLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler } from "./middleware/error.middleware";
 import agentRoutes from "./routes/agent.routes";
+import { swaggerDocument } from "./docs/swagger";
 
 const app = express();
 
@@ -20,6 +22,9 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
 // Global rate limiter
 app.use(rateLimiter);
+
+// Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check — for Docker healthcheck and load balancer probes
 app.get("/health", (_req: Request, res: Response) => {
