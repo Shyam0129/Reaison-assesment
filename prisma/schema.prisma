@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Agent {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(255)
+  latitude     Float
+  longitude    Float
+  isActive     Boolean  @default(true) @map("is_active")
+  avgRating    Float    @default(0) @map("avg_rating")
+  totalReviews Int      @default(0) @map("total_reviews")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  reviews Review[]
+
+  @@index([isActive])
+  @@map("agents")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  agentId   String   @map("agent_id") @db.Uuid
+  rating    Int
+  comment   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@map("reviews")
+}
