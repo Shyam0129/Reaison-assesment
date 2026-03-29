@@ -1,0 +1,60 @@
+{
+  "name": "agent-locator",
+  "version": "1.0.0",
+  "description": "Agent Locator Backend System with geospatial search and review system",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f api",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:postgis": "cmd /c \"docker exec -i agent-locator-db-1 psql -U postgres agent_locator < prisma\\postgis-setup.sql\"",
+    "db:setup": "npm run docker:up && timeout 10 && npm run db:migrate && npm run db:postgis && npm run db:seed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shyam0129/Reaison-assesment.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Shyam0129/Reaison-assesment/issues"
+  },
+  "homepage": "https://github.com/Shyam0129/Reaison-assesment#readme",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@types/pg": "^8.20.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "pg": "^8.20.0",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3",
+    "redis": "^5.11.0",
+    "xss": "^1.0.15",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "prisma": "^7.6.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
