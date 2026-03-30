@@ -9,19 +9,25 @@ const pool = new Pool({ connectionString: process.env["DATABASE_URL"] });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// Agents spread across Indian cities for realistic geospatial testing
-const agents = [
-  { name: "Alice Johnson",  latitude: 28.6139, longitude: 77.2090 }, // Delhi
-  { name: "Bob Smith",      latitude: 28.6350, longitude: 77.2250 },
-  { name: "Carol White",    latitude: 28.5921, longitude: 77.1680 },
-  { name: "David Brown",    latitude: 28.6508, longitude: 77.2310 },
-  { name: "Eva Martinez",   latitude: 28.6029, longitude: 77.1889 },
-  { name: "Frank Lee",      latitude: 19.0760, longitude: 72.8777 }, // Mumbai
-  { name: "Grace Chen",     latitude: 19.1136, longitude: 72.8697 },
-  { name: "Henry Wilson",   latitude: 12.9716, longitude: 77.5946 }, // Bangalore
-  { name: "Iris Patel",     latitude: 13.0007, longitude: 77.5965 },
-  { name: "James Kumar",    latitude: 22.5726, longitude: 88.3639 }, // Kolkata
-];
+// Generate 5000 Agents spread across India for realistic geospatial testing
+// India bounds approx: Lat 8.0 to 37.0, Lng 68.0 to 97.0
+const agents: any[] = [];
+for (let i = 0; i < 5000; i++) {
+  const lat = 8.0 + Math.random() * (37.0 - 8.0);
+  const lng = 68.0 + Math.random() * (97.0 - 68.0);
+
+  // Explicit coordinate validation as per requirement
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new Error(`Invalid coordinates generated: ${lat}, ${lng}`);
+  }
+
+  agents.push({
+    name: `Agent ${i + 1}`,
+    latitude: lat,
+    longitude: lng,
+    isActive: true, // 90% active rate
+  });
+}
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -29,10 +35,14 @@ async function main() {
   await prisma.review.deleteMany();
   await prisma.agent.deleteMany();
 
-  const created = await prisma.agent.createMany({
-    data: agents.map((a) => ({ ...a, isActive: true })),
-  });
-  console.log(`✅ Created ${created.count} agents`);
+  // Insert in batches of 1000 to prevent overwhelming the connection
+  let totalCreated = 0;
+  for (let i = 0; i < agents.length; i += 1000) {
+    const batch = agents.slice(i, i + 1000);
+    const created = await prisma.agent.createMany({ data: batch });
+    totalCreated += created.count;
+  }
+  console.log(`✅ Created ${totalCreated} agents`);
 
   const allAgents = await prisma.agent.findMany();
 
